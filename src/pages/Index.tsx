@@ -5,6 +5,7 @@ import Hero from '../components/Hero';
 import Features from '../components/Features';
 import ContactForm from '../components/ContactForm';
 import Footer from '../components/Footer';
+import AdminView from '../components/AdminView';
 
 const Index = () => {
   useEffect(() => {
@@ -40,6 +41,7 @@ const Index = () => {
       <Features />
       <ContactForm />
       <Footer />
+      <AdminView />
     </div>
   );
 };

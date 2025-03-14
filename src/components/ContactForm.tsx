@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { CheckCircle2, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { saveContactData, isEmailRegistered, isWhatsAppRegistered } from '../services/contactService';
 
 const ContactForm = () => {
   const [name, setName] = useState('');
@@ -30,14 +30,42 @@ const ContactForm = () => {
       return;
     }
     
-    // Simulação de envio
+    // Verificar se o email ou WhatsApp já está cadastrado
+    if (isEmailRegistered(email)) {
+      toast.error('Este email já está cadastrado em nossa lista de espera');
+      return;
+    }
+    
+    if (isWhatsAppRegistered(whatsapp)) {
+      toast.error('Este número de WhatsApp já está cadastrado em nossa lista de espera');
+      return;
+    }
+    
+    // Iniciar o processo de envio
     setIsSubmitting(true);
     
-    setTimeout(() => {
+    try {
+      // Salvar os dados no localStorage
+      const savedContact = saveContactData({
+        name,
+        email,
+        whatsapp,
+        contactPreference
+      });
+      
+      console.log('Contato salvo:', savedContact);
+      
+      // Simular um pequeno atraso para feedback ao usuário
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setIsSubmitted(true);
+        toast.success('Cadastro realizado com sucesso!');
+      }, 1000);
+    } catch (error) {
+      console.error('Erro ao salvar contato:', error);
+      toast.error('Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente.');
       setIsSubmitting(false);
-      setIsSubmitted(true);
-      toast.success('Cadastro realizado com sucesso!');
-    }, 1500);
+    }
   };
   
   const validateEmail = (email: string) => {
@@ -220,7 +248,13 @@ const ContactForm = () => {
                       Obrigado por se juntar à nossa lista de espera. Em breve entraremos em contato com mais informações.
                     </p>
                     <button
-                      onClick={() => setIsSubmitted(false)}
+                      onClick={() => {
+                        setIsSubmitted(false);
+                        setName('');
+                        setEmail('');
+                        setWhatsapp('');
+                        setContactPreference('email');
+                      }}
                       className="text-purple hover:text-purple/80 font-medium"
                     >
                       Voltar ao formulário
