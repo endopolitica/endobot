@@ -21,27 +21,32 @@ export const saveContactData = async (data: Omit<ContactData, 'id' | 'createdAt'
     contact_preference: data.contactPreference
   };
   
-  // Inserir dados no Supabase
-  const { data: insertedData, error } = await supabase
-    .from('contacts')
-    .insert(contactDataForDb)
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Erro ao salvar contato:', error);
+  try {
+    // Inserir dados no Supabase
+    const { data: insertedData, error } = await supabase
+      .from('contacts')
+      .insert(contactDataForDb)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erro ao salvar contato:', error);
+      throw error;
+    }
+    
+    // Formatar dados retornados para o formato da aplicação (camelCase)
+    return {
+      id: insertedData.id,
+      name: insertedData.name,
+      email: insertedData.email,
+      whatsapp: insertedData.whatsapp,
+      contactPreference: insertedData.contact_preference as 'email' | 'whatsapp',
+      createdAt: insertedData.created_at
+    };
+  } catch (error) {
+    console.error('Erro detalhado ao salvar contato:', error);
     throw error;
   }
-  
-  // Formatar dados retornados para o formato da aplicação (camelCase)
-  return {
-    id: insertedData.id,
-    name: insertedData.name,
-    email: insertedData.email,
-    whatsapp: insertedData.whatsapp,
-    contactPreference: insertedData.contact_preference as 'email' | 'whatsapp',
-    createdAt: insertedData.created_at
-  };
 };
 
 // Função para obter todos os dados de contato do Supabase
