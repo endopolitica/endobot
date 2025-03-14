@@ -29,8 +29,8 @@ const Navbar = () => {
           </div>
           
           <nav className="hidden md:flex space-x-8">
+            <a target='_blank' rel="noopener noreferrer" href="https://instagram.com/endopolitica" className="text-black/80 hover:text-purple transition-colors font-medium">Endopolítica</a>
             <a href="#recursos" className="text-black/80 hover:text-purple transition-colors font-medium">Recursos</a>
-            <a href="#sobre" className="text-black/80 hover:text-purple transition-colors font-medium">Sobre</a>
             <a href="#contato" className="text-black/80 hover:text-purple transition-colors font-medium">Contato</a>
           </nav>
           
@@ -54,7 +54,6 @@ const Navbar = () => {
         <div className="md:hidden bg-white/95 backdrop-blur-md animate-slide-down">
           <div className="pt-2 pb-4 px-4 space-y-3">
             <a href="#recursos" className="block py-2 text-black/80 hover:text-purple font-medium" onClick={() => setMobileMenuOpen(false)}>Recursos</a>
-            <a href="#sobre" className="block py-2 text-black/80 hover:text-purple font-medium" onClick={() => setMobileMenuOpen(false)}>Sobre</a>
             <a href="#contato" className="block py-2 text-black/80 hover:text-purple font-medium" onClick={() => setMobileMenuOpen(false)}>Contato</a>
             <div className="pt-2">
               <a 

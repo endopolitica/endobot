@@ -21,16 +21,11 @@ const Footer = () => {
           </div>
           
           <div className="flex flex-wrap justify-center gap-6 mb-10">
-            <a href="#" className="text-black/70 hover:text-purple transition-colors">Início</a>
-            <a href="#recursos" className="text-black/70 hover:text-purple transition-colors">Recursos</a>
-            <a href="#sobre" className="text-black/70 hover:text-purple transition-colors">Sobre</a>
-            <a href="#contato" className="text-black/70 hover:text-purple transition-colors">Contato</a>
-            <a href="#" className="text-black/70 hover:text-purple transition-colors">Política de Privacidade</a>
-            <a href="#" className="text-black/70 hover:text-purple transition-colors">Termos de Uso</a>
+            <a href="https://endopolitica.org/terms-of-service.html" target='_blank' rel="noopener noreferrer" className="text-black/70 hover:text-purple transition-colors">Política de Privacidade e Termos de Uso</a>
           </div>
           
           <div className="text-center text-black/50 text-sm">
-            <p>&copy; {currentYear} Endobot. Todos os direitos reservados.</p>
+            <p>&copy; {currentYear} Endobot por Endopolítica. Todos os direitos reservados.</p>
           </div>
         </div>
       </div>
