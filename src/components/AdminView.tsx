@@ -7,10 +7,13 @@ import { ptBR } from 'date-fns/locale';
 const AdminView = () => {
   const [contacts, setContacts] = useState<ContactData[]>([]);
   const [isVisible, setIsVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Atualizar a lista quando o componente é montado
-    updateContactList();
+    // Atualizar a lista quando o componente é montado e quando isVisible muda para true
+    if (isVisible) {
+      updateContactList();
+    }
     
     // Configurar uma tecla de atalho para mostrar/esconder a visualização admin
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -24,13 +27,18 @@ const AdminView = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [isVisible]);
   
-  const updateContactList = () => {
-    const data = getContactData();
-    setContacts(data.sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    ));
+  const updateContactList = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getContactData();
+      setContacts(data);
+    } catch (error) {
+      console.error('Erro ao carregar contatos:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   // Formatar a data para o formato brasileiro
@@ -52,9 +60,10 @@ const AdminView = () => {
           <div className="flex gap-4">
             <button 
               onClick={updateContactList}
-              className="px-4 py-2 bg-purple text-white rounded hover:bg-purple/90 transition-colors"
+              disabled={isLoading}
+              className={`px-4 py-2 bg-purple text-white rounded hover:bg-purple/90 transition-colors ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              Atualizar
+              {isLoading ? 'Carregando...' : 'Atualizar'}
             </button>
             <button 
               onClick={() => setIsVisible(false)}
@@ -66,7 +75,12 @@ const AdminView = () => {
         </div>
         
         <div className="border rounded-lg overflow-hidden">
-          {contacts.length === 0 ? (
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-purple border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-500">Carregando contatos...</p>
+            </div>
+          ) : contacts.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
               Nenhum contato cadastrado ainda.
             </div>

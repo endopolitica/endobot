@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CheckCircle2, Send } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,7 +12,7 @@ const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validar formulário
@@ -30,23 +31,27 @@ const ContactForm = () => {
       return;
     }
     
-    // Verificar se o email ou WhatsApp já está cadastrado
-    if (isEmailRegistered(email)) {
-      toast.error('Este email já está cadastrado em nossa lista de espera');
-      return;
-    }
-    
-    if (isWhatsAppRegistered(whatsapp)) {
-      toast.error('Este número de WhatsApp já está cadastrado em nossa lista de espera');
-      return;
-    }
-    
     // Iniciar o processo de envio
     setIsSubmitting(true);
     
     try {
-      // Salvar os dados no localStorage
-      const savedContact = saveContactData({
+      // Verificar se o email ou WhatsApp já está cadastrado
+      const emailRegistered = await isEmailRegistered(email);
+      if (emailRegistered) {
+        toast.error('Este email já está cadastrado em nossa lista de espera');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const whatsappRegistered = await isWhatsAppRegistered(whatsapp);
+      if (whatsappRegistered) {
+        toast.error('Este número de WhatsApp já está cadastrado em nossa lista de espera');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Salvar os dados no Supabase
+      const savedContact = await saveContactData({
         name,
         email,
         whatsapp,
@@ -55,12 +60,9 @@ const ContactForm = () => {
       
       console.log('Contato salvo:', savedContact);
       
-      // Simular um pequeno atraso para feedback ao usuário
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setIsSubmitted(true);
-        toast.success('Cadastro realizado com sucesso!');
-      }, 1000);
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      toast.success('Cadastro realizado com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar contato:', error);
       toast.error('Ocorreu um erro ao processar seu cadastro. Por favor, tente novamente.');

@@ -1,4 +1,6 @@
 
+import { supabase } from "@/integrations/supabase/client";
+
 // Definindo a interface para os dados de contato
 export interface ContactData {
   id: string;
@@ -9,42 +11,92 @@ export interface ContactData {
   createdAt: string;
 }
 
-// Função para salvar os dados de contato
-export const saveContactData = (data: Omit<ContactData, 'id' | 'createdAt'>): ContactData => {
-  // Recuperar dados existentes
-  const existingData = getContactData();
-  
-  // Criar novo registro com ID único e timestamp
-  const newContact: ContactData = {
-    ...data,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString()
+// Função para salvar os dados de contato no Supabase
+export const saveContactData = async (data: Omit<ContactData, 'id' | 'createdAt'>): Promise<ContactData> => {
+  // Formatar os dados para a tabela do Supabase (snake_case)
+  const contactDataForDb = {
+    name: data.name,
+    email: data.email,
+    whatsapp: data.whatsapp,
+    contact_preference: data.contactPreference
   };
   
-  // Adicionar aos dados existentes
-  const updatedData = [...existingData, newContact];
+  // Inserir dados no Supabase
+  const { data: insertedData, error } = await supabase
+    .from('contacts')
+    .insert(contactDataForDb)
+    .select()
+    .single();
   
-  // Salvar no localStorage
-  localStorage.setItem('contactData', JSON.stringify(updatedData));
+  if (error) {
+    console.error('Erro ao salvar contato:', error);
+    throw error;
+  }
   
-  return newContact;
+  // Formatar dados retornados para o formato da aplicação (camelCase)
+  return {
+    id: insertedData.id,
+    name: insertedData.name,
+    email: insertedData.email,
+    whatsapp: insertedData.whatsapp,
+    contactPreference: insertedData.contact_preference as 'email' | 'whatsapp',
+    createdAt: insertedData.created_at
+  };
 };
 
-// Função para obter todos os dados de contato
-export const getContactData = (): ContactData[] => {
-  const data = localStorage.getItem('contactData');
-  return data ? JSON.parse(data) : [];
+// Função para obter todos os dados de contato do Supabase
+export const getContactData = async (): Promise<ContactData[]> => {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Erro ao obter contatos:', error);
+    throw error;
+  }
+  
+  // Formatar dados retornados para o formato da aplicação (camelCase)
+  return data.map(item => ({
+    id: item.id,
+    name: item.name,
+    email: item.email,
+    whatsapp: item.whatsapp,
+    contactPreference: item.contact_preference as 'email' | 'whatsapp',
+    createdAt: item.created_at
+  }));
 };
 
 // Função para verificar se um email já está cadastrado
-export const isEmailRegistered = (email: string): boolean => {
-  const contacts = getContactData();
-  return contacts.some(contact => contact.email === email);
+export const isEmailRegistered = async (email: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('email')
+    .eq('email', email)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('Erro ao verificar email:', error);
+    throw error;
+  }
+  
+  return data !== null;
 };
 
 // Função para verificar se um número de WhatsApp já está cadastrado
-export const isWhatsAppRegistered = (whatsapp: string): boolean => {
+export const isWhatsAppRegistered = async (whatsapp: string): Promise<boolean> => {
   const whatsappClean = whatsapp.replace(/\D/g, '');
-  const contacts = getContactData();
-  return contacts.some(contact => contact.whatsapp.replace(/\D/g, '') === whatsappClean);
+  
+  // Precisamos fazer uma busca mais complexa pois o número pode estar armazenado com formatação
+  const { data, error } = await supabase
+    .from('contacts')
+    .select('whatsapp');
+  
+  if (error) {
+    console.error('Erro ao verificar WhatsApp:', error);
+    throw error;
+  }
+  
+  // Verifica se existe algum contato com o mesmo número (removendo formatação)
+  return data.some(item => item.whatsapp.replace(/\D/g, '') === whatsappClean);
 };
